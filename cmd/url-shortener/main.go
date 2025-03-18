@@ -5,10 +5,14 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"url-shortener/config"
+	"url-shortener/internal/auth"
 )
 
 func main() {
+	conf := config.Load()
 	router := http.NewServeMux()
+	auth.NewHandler(router, auth.HandlerDeps{Config: conf})
 
 	server := http.Server{
 		Addr:    fmt.Sprintf(":%s", os.Getenv("PORT")),
