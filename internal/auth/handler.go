@@ -1,8 +1,10 @@
 package auth
 
 import (
+	"fmt"
 	"net/http"
 	"url-shortener/config"
+	"url-shortener/pkg/req"
 	"url-shortener/pkg/res"
 )
 
@@ -24,6 +26,11 @@ func NewHandler(router *http.ServeMux, deps HandlerDeps) {
 
 func (h Handler) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		payload, err := req.HandleBody[LoginRequest](w, r)
+		if err != nil {
+			return
+		}
+		fmt.Println(payload)
 		data := LoginResponse{
 			Token: "123",
 		}
