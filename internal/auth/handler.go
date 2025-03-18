@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"encoding/json"
 	"net/http"
 	"url-shortener/config"
 )
@@ -23,7 +24,12 @@ func NewHandler(router *http.ServeMux, deps HandlerDeps) {
 
 func (h Handler) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
+		data := LoginResponse{
+			Token: "123",
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(data)
 	}
 }
 
