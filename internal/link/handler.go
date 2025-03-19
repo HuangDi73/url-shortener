@@ -2,8 +2,11 @@ package link
 
 import (
 	"net/http"
+	"strconv"
 	"url-shortener/pkg/req"
 	"url-shortener/pkg/res"
+
+	"gorm.io/gorm"
 )
 
 type Handler struct {
@@ -52,7 +55,7 @@ func (h Handler) GoTo() http.HandlerFunc {
 		hash := r.PathValue("hash")
 		link, err := h.Repo.GetByHash(hash)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
 		http.Redirect(w, r, link.Url, http.StatusTemporaryRedirect)
@@ -61,7 +64,26 @@ func (h Handler) GoTo() http.HandlerFunc {
 
 func (h Handler) Update() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
+		body, err := req.HandleBody[UpdateRequest](w, r)
+		if err != nil {
+			return
+		}
+		stringId := r.PathValue("id")
+		id, err := strconv.ParseUint(stringId, 10, 32)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		link, err := h.Repo.Update(&Link{
+			Model: gorm.Model{ID: uint(id)},
+			Url:   body.Url,
+			Hash:  body.Hash,
+		})
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		res.Json(w, link, http.StatusCreated)
 	}
 }
 

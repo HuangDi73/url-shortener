@@ -1,6 +1,10 @@
 package link
 
-import "url-shortener/pkg/db"
+import (
+	"url-shortener/pkg/db"
+
+	"gorm.io/gorm/clause"
+)
 
 type Repository struct {
 	Db *db.Db
@@ -27,4 +31,12 @@ func (repo *Repository) GetByHash(hash string) (*Link, error) {
 		return nil, result.Error
 	}
 	return &link, nil
+}
+
+func (repo *Repository) Update(link *Link) (*Link, error) {
+	result := repo.Db.Clauses(clause.Returning{}).Updates(link)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return link, nil
 }
