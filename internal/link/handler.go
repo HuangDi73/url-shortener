@@ -2,6 +2,8 @@ package link
 
 import (
 	"net/http"
+	"url-shortener/pkg/req"
+	"url-shortener/pkg/res"
 )
 
 type Handler struct {
@@ -24,7 +26,16 @@ func NewHandler(router *http.ServeMux, deps HandlerDeps) {
 
 func (h Handler) Create() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
+		body, err := req.HandleBody[CreateRequest](w, r)
+		if err != nil {
+			return
+		}
+		link := NewLink(body.Url)
+		createdLink, err := h.Repo.Create(link)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
+		res.Json(w, createdLink, http.StatusCreated)
 	}
 }
 
