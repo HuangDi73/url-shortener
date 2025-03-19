@@ -1,13 +1,21 @@
 package link
 
-import "net/http"
+import (
+	"net/http"
+)
 
-type Handler struct{}
+type Handler struct {
+	Repo *Repository
+}
 
-type HandlerDeps struct{}
+type HandlerDeps struct {
+	Repo *Repository
+}
 
 func NewHandler(router *http.ServeMux, deps HandlerDeps) {
-	handler := Handler{}
+	handler := Handler{
+		Repo: deps.Repo,
+	}
 	router.HandleFunc("POST /link", handler.Create())
 	router.HandleFunc("GET /{hash}", handler.GoTo())
 	router.HandleFunc("PATCH /link/{id}", handler.Update())
