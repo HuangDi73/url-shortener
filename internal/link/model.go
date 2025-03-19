@@ -22,10 +22,10 @@ func NewLink(url string) *Link {
 	return link
 }
 
-func (link *Link) GenerateHash() string {
+func (link *Link) GenerateHash() {
 	b := make([]rune, 6)
 	for i := range b {
 		b[i] = letters[rand.Intn(len(letters))]
 	}
-	return string(b)
+	link.Hash = string(b)
 }
