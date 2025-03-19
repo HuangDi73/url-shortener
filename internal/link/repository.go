@@ -19,3 +19,12 @@ func (repo *Repository) Create(link *Link) (*Link, error) {
 	}
 	return link, nil
 }
+
+func (repo *Repository) GetByHash(hash string) (*Link, error) {
+	var link Link
+	result := repo.Db.First(&link, "hash = ?", hash)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &link, nil
+}

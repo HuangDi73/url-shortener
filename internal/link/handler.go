@@ -31,9 +31,17 @@ func (h Handler) Create() http.HandlerFunc {
 			return
 		}
 		link := NewLink(body.Url)
+		for {
+			existedLink, _ := h.Repo.GetByHash(link.Hash)
+			if existedLink == nil {
+				break
+			}
+			link.GenerateHash()
+		}
 		createdLink, err := h.Repo.Create(link)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
 		}
 		res.Json(w, createdLink, http.StatusCreated)
 	}
@@ -41,7 +49,13 @@ func (h Handler) Create() http.HandlerFunc {
 
 func (h Handler) GoTo() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
+		hash := r.PathValue("hash")
+		link, err := h.Repo.GetByHash(hash)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		http.Redirect(w, r, link.Url, http.StatusTemporaryRedirect)
 	}
 }
 

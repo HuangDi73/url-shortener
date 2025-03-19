@@ -15,14 +15,15 @@ type Link struct {
 }
 
 func NewLink(url string) *Link {
-	return &Link{
-		Url:  url,
-		Hash: GenerateHash(6),
+	link := &Link{
+		Url: url,
 	}
+	link.GenerateHash()
+	return link
 }
 
-func GenerateHash(n int) string {
-	b := make([]rune, n)
+func (link *Link) GenerateHash() string {
+	b := make([]rune, 6)
 	for i := range b {
 		b[i] = letters[rand.Intn(len(letters))]
 	}
