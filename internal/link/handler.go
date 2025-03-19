@@ -89,6 +89,17 @@ func (h Handler) Update() http.HandlerFunc {
 
 func (h Handler) Delete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
+		stringId := r.PathValue("id")
+		id, err := strconv.ParseUint(stringId, 10, 32)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		err = h.Repo.Delete(uint(id))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		res.Json(w, nil, http.StatusOK)
 	}
 }

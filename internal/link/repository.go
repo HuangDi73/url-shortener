@@ -40,3 +40,11 @@ func (repo *Repository) Update(link *Link) (*Link, error) {
 	}
 	return link, nil
 }
+
+func (repo *Repository) Delete(id uint) error {
+	result := repo.Db.Delete(&Link{}, id)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
