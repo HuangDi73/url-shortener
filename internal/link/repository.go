@@ -48,3 +48,12 @@ func (repo *Repository) Delete(id uint) error {
 	}
 	return nil
 }
+
+func (repo *Repository) DeleteById(id uint) (*Link, error) {
+	var link Link
+	result := repo.Db.First(&link, id)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &link, nil
+}
