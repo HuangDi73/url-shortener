@@ -9,11 +9,11 @@ import (
 )
 
 type Handler struct {
-	config.Config
+	*config.Config
 }
 
 type HandlerDeps struct {
-	config.Config
+	*config.Config
 }
 
 func NewHandler(router *http.ServeMux, deps HandlerDeps) {
