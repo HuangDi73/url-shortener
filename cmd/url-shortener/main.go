@@ -30,8 +30,8 @@ func main() {
 
 	// Middlewares
 	stack := middleware.Chain(
-		middleware.CORS,
 		middleware.Logging,
+		middleware.CORS,
 	)
 
 	server := http.Server{
