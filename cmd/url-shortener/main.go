@@ -28,9 +28,15 @@ func main() {
 		Repo: linkRepo,
 	})
 
+	// Middlewares
+	stack := middleware.Chain(
+		middleware.CORS,
+		middleware.Logging,
+	)
+
 	server := http.Server{
 		Addr:    fmt.Sprintf(":%s", os.Getenv("PORT")),
-		Handler: middleware.Logging(router),
+		Handler: stack(router),
 	}
 
 	log.Printf("Server is running in http://localhost%s", server.Addr)
