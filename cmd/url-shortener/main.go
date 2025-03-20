@@ -9,6 +9,7 @@ import (
 	"url-shortener/internal/auth"
 	"url-shortener/internal/link"
 	"url-shortener/pkg/db"
+	"url-shortener/pkg/middleware"
 )
 
 func main() {
@@ -29,7 +30,7 @@ func main() {
 
 	server := http.Server{
 		Addr:    fmt.Sprintf(":%s", os.Getenv("PORT")),
-		Handler: router,
+		Handler: middleware.Logging(router),
 	}
 
 	log.Printf("Server is running in http://localhost%s", server.Addr)
