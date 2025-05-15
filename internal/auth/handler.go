@@ -8,7 +8,7 @@ import (
 	"url-shortener/pkg/res"
 )
 
-type Handler struct {
+type handler struct {
 	*config.Config
 }
 
@@ -17,14 +17,12 @@ type HandlerDeps struct {
 }
 
 func NewHandler(router *http.ServeMux, deps HandlerDeps) {
-	handler := Handler{
-		Config: deps.Config,
-	}
+	handler := handler(deps)
 	router.HandleFunc("POST /auth/login", handler.Login())
 	router.HandleFunc("POST /auth/register", handler.Register())
 }
 
-func (h Handler) Login() http.HandlerFunc {
+func (h handler) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		payload, err := req.HandleBody[LoginRequest](w, r)
 		if err != nil {
@@ -38,7 +36,7 @@ func (h Handler) Login() http.HandlerFunc {
 	}
 }
 
-func (h Handler) Register() http.HandlerFunc {
+func (h handler) Register() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 	}

@@ -10,25 +10,23 @@ import (
 	"gorm.io/gorm"
 )
 
-type Handler struct {
-	Repo *Repository
+type handler struct {
+	Repo IRepository
 }
 
 type HandlerDeps struct {
-	Repo *Repository
+	Repo IRepository
 }
 
 func NewHandler(router *http.ServeMux, deps HandlerDeps) {
-	handler := Handler{
-		Repo: deps.Repo,
-	}
+	handler := handler(deps)
 	router.HandleFunc("POST /link", handler.Create())
 	router.HandleFunc("GET /{hash}", handler.GoTo())
 	router.Handle("PATCH /link/{id}", middleware.IsAuthed(handler.Update()))
 	router.HandleFunc("DELETE /link/{id}", handler.Delete())
 }
 
-func (h Handler) Create() http.HandlerFunc {
+func (h handler) Create() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		body, err := req.HandleBody[CreateRequest](w, r)
 		if err != nil {
@@ -36,7 +34,7 @@ func (h Handler) Create() http.HandlerFunc {
 		}
 		link := NewLink(body.Url)
 		for {
-			existedLink, _ := h.Repo.GetByHash(link.Hash)
+			existedLink, _ := h.Repo.FindByHash(link.Hash)
 			if existedLink == nil {
 				break
 			}
@@ -51,10 +49,10 @@ func (h Handler) Create() http.HandlerFunc {
 	}
 }
 
-func (h Handler) GoTo() http.HandlerFunc {
+func (h handler) GoTo() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		hash := r.PathValue("hash")
-		link, err := h.Repo.GetByHash(hash)
+		link, err := h.Repo.FindByHash(hash)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
@@ -63,7 +61,7 @@ func (h Handler) GoTo() http.HandlerFunc {
 	}
 }
 
-func (h Handler) Update() http.HandlerFunc {
+func (h handler) Update() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		body, err := req.HandleBody[UpdateRequest](w, r)
 		if err != nil {
@@ -88,7 +86,7 @@ func (h Handler) Update() http.HandlerFunc {
 	}
 }
 
-func (h Handler) Delete() http.HandlerFunc {
+func (h handler) Delete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		stringId := r.PathValue("id")
 		id, err := strconv.ParseUint(stringId, 10, 32)
@@ -96,7 +94,7 @@ func (h Handler) Delete() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		_, err = h.Repo.DeleteById(uint(id))
+		_, err = h.Repo.FindById(uint(id))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return

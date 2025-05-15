@@ -6,11 +6,19 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+type IRepository interface {
+	Create(*Link) (*Link, error)
+	FindByHash(string) (*Link, error)
+	FindById(uint) (*Link, error)
+	Update(*Link) (*Link, error)
+	Delete(uint) error
+}
+
 type Repository struct {
 	Db *db.Db
 }
 
-func NewRepository(db *db.Db) *Repository {
+func NewRepository(db *db.Db) IRepository {
 	return &Repository{
 		Db: db,
 	}
@@ -24,9 +32,18 @@ func (repo *Repository) Create(link *Link) (*Link, error) {
 	return link, nil
 }
 
-func (repo *Repository) GetByHash(hash string) (*Link, error) {
+func (repo *Repository) FindByHash(hash string) (*Link, error) {
 	var link Link
 	result := repo.Db.First(&link, "hash = ?", hash)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return &link, nil
+}
+
+func (repo *Repository) FindById(id uint) (*Link, error) {
+	var link Link
+	result := repo.Db.First(&link, id)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -47,13 +64,4 @@ func (repo *Repository) Delete(id uint) error {
 		return result.Error
 	}
 	return nil
-}
-
-func (repo *Repository) DeleteById(id uint) (*Link, error) {
-	var link Link
-	result := repo.Db.First(&link, id)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return &link, nil
 }
