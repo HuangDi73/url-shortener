@@ -67,6 +67,10 @@ func (h *handler) GoTo() http.HandlerFunc {
 
 func (h *handler) Update() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if r.ContentLength == 0 {
+			http.Error(w, "Empty body", http.StatusBadRequest)
+			return
+		}
 		body, err := req.HandleBody[UpdateLink](w, r)
 		if err != nil {
 			return

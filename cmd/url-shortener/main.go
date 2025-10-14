@@ -7,6 +7,7 @@ import (
 	"url-shortener/internal/auth"
 	"url-shortener/internal/link"
 	"url-shortener/pkg/db"
+	"url-shortener/pkg/middleware"
 )
 
 func main() {
@@ -24,9 +25,15 @@ func main() {
 		Repo:   linkRepo,
 	})
 
+	stack := middleware.Chain(
+		middleware.Logging,
+		middleware.IsAuthed,
+		middleware.Cors,
+	)
+
 	server := http.Server{
 		Addr:    conf.Port,
-		Handler: mux,
+		Handler: stack(mux),
 	}
 
 	log.Printf("Server is running on http://localhost%s", server.Addr)
