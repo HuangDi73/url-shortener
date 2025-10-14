@@ -10,10 +10,12 @@ import (
 
 type handler struct {
 	*config.Config
+	AuthService *Service
 }
 
 type HandlerDeps struct {
 	*config.Config
+	AuthService *Service
 }
 
 func NewHandler(mux *http.ServeMux, deps HandlerDeps) {
@@ -32,7 +34,15 @@ func (h *handler) Login() http.HandlerFunc {
 		if err != nil {
 			return
 		}
-		fmt.Println(*body)
+		email, err := h.AuthService.Login(
+			body.Email,
+			body.Password,
+		)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+		fmt.Println(email)
 		data := LoginResponse{
 			Token: "asdafaf",
 		}
@@ -42,6 +52,27 @@ func (h *handler) Login() http.HandlerFunc {
 
 func (h *handler) Register() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
+		if r.ContentLength == 0 {
+			http.Error(w, "Empty body", http.StatusBadRequest)
+			return
+		}
+		body, err := req.HandleBody[RegisterRequest](w, r)
+		if err != nil {
+			return
+		}
+		email, err := h.AuthService.Register(
+			body.Email,
+			body.Name,
+			body.Password,
+		)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+		fmt.Println(email)
+		data := RegisterResponse{
+			Token: "afsdfsdf",
+		}
+		res.Json(w, data, http.StatusCreated)
 	}
 }

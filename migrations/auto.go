@@ -3,6 +3,7 @@ package main
 import (
 	"url-shortener/config"
 	"url-shortener/internal/link"
+	"url-shortener/internal/user"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -14,5 +15,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	db.AutoMigrate(&link.Link{})
+	db.AutoMigrate(&link.Link{}, &user.User{})
 }
