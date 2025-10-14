@@ -24,6 +24,10 @@ func NewHandler(mux *http.ServeMux, deps HandlerDeps) {
 
 func (h *handler) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if r.ContentLength == 0 {
+			http.Error(w, "Empty body", http.StatusBadRequest)
+			return
+		}
 		body, err := req.HandleBody[LoginRequest](w, r)
 		if err != nil {
 			return
