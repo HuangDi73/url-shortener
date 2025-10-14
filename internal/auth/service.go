@@ -34,7 +34,7 @@ func (s *Service) Login(email, password string) (string, error) {
 func (s *Service) Register(email, name, password string) (string, error) {
 	existedUser, _ := s.Repo.FindByEmail(email)
 	if existedUser != nil {
-		return "", errors.New(ErrNotExists)
+		return "", errors.New(ErrUserExists)
 	}
 	hashedPass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
