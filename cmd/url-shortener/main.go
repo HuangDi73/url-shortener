@@ -4,11 +4,17 @@ import (
 	"log"
 	"net/http"
 	"url-shortener/config"
+	"url-shortener/internal/auth"
+	"url-shortener/internal/link"
 )
 
 func main() {
 	conf := config.Load()
 	mux := http.NewServeMux()
+
+	// Handlers
+	auth.NewHandler(mux, auth.HandlerDeps{Config: conf})
+	link.NewHandler(mux, link.HandlerDeps{Config: conf})
 
 	server := http.Server{
 		Addr:    conf.Port,
