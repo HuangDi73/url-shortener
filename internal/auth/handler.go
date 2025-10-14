@@ -1,8 +1,11 @@
 package auth
 
 import (
+	"fmt"
 	"net/http"
 	"url-shortener/config"
+	"url-shortener/pkg/req"
+	"url-shortener/pkg/res"
 )
 
 type handler struct {
@@ -21,7 +24,15 @@ func NewHandler(mux *http.ServeMux, deps HandlerDeps) {
 
 func (h *handler) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
+		body, err := req.HandleBody[LoginRequest](w, r)
+		if err != nil {
+			return
+		}
+		fmt.Println(*body)
+		data := LoginResponse{
+			Token: "asdafaf",
+		}
+		res.Json(w, data, http.StatusOK)
 	}
 }
 

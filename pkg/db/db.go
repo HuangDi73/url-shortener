@@ -1,18 +1,20 @@
-package main
+package db
 
 import (
 	"url-shortener/config"
-	"url-shortener/internal/link"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-func main() {
-	conf := config.Load()
+type Db struct {
+	*gorm.DB
+}
+
+func NewDb(conf *config.Config) *Db {
 	db, err := gorm.Open(postgres.Open(conf.Db.Dsn), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
-	db.AutoMigrate(&link.Link{})
+	return &Db{db}
 }
