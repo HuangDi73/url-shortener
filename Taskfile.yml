@@ -1,0 +1,18 @@
+version: '3'
+
+vars:
+  BINARY_NAME: shortener
+
+tasks:
+  build:
+    cmds:
+      - go build -o {{.BINARY_NAME}} ./cmd/url-shortener/main.go
+  run:
+    cmds:
+      - ./{{.BINARY_NAME}}
+  build-exe:
+    cmds:
+      - go build -o {{.BINARY_NAME}}.exe ./cmd/url-shortener/main.go
+  run-exe:
+    cmds:
+      - ./{{.BINARY_NAME}}.exe

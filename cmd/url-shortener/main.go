@@ -3,13 +3,15 @@ package main
 import (
 	"log"
 	"net/http"
+	"url-shortener/config"
 )
 
 func main() {
+	conf := config.Load()
 	mux := http.NewServeMux()
 
 	server := http.Server{
-		Addr:    ":8000",
+		Addr:    conf.Port,
 		Handler: mux,
 	}
 
