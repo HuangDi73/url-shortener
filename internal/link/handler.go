@@ -1,9 +1,11 @@
 package link
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"url-shortener/config"
+	"url-shortener/pkg/middleware"
 	"url-shortener/pkg/req"
 	"url-shortener/pkg/res"
 )
@@ -22,7 +24,7 @@ func NewHandler(mux *http.ServeMux, deps HandlerDeps) {
 	h := handler(deps)
 	mux.HandleFunc("POST /link", h.Create())
 	mux.HandleFunc("GET /{hash}", h.GoTo())
-	mux.HandleFunc("PATCH /link/{id}", h.Update())
+	mux.Handle("PATCH /link/{id}", middleware.IsAuthed(h.Update(), h.Config))
 	mux.HandleFunc("DELETE /link/{id}", h.Delete())
 }
 
@@ -70,6 +72,10 @@ func (h *handler) Update() http.HandlerFunc {
 		if r.ContentLength == 0 {
 			http.Error(w, "Empty body", http.StatusBadRequest)
 			return
+		}
+		email, ok := r.Context().Value("CtxEmailKey").(string)
+		if ok {
+			fmt.Println(email)
 		}
 		body, err := req.HandleBody[UpdateLink](w, r)
 		if err != nil {

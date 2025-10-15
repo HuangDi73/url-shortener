@@ -35,7 +35,6 @@ func main() {
 
 	stack := middleware.Chain(
 		middleware.Logging,
-		middleware.IsAuthed,
 		middleware.Cors,
 	)
 
