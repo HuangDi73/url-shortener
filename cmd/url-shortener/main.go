@@ -9,6 +9,7 @@ import (
 	"url-shortener/internal/stat"
 	"url-shortener/internal/user"
 	"url-shortener/pkg/db"
+	"url-shortener/pkg/event"
 	"url-shortener/pkg/middleware"
 )
 
@@ -16,6 +17,7 @@ func main() {
 	conf := config.Load()
 	db := db.NewDb(conf)
 	mux := http.NewServeMux()
+	eventBus := event.NewEventBus()
 
 	// Repositories
 	linkRepo := link.NewRepository(db)
@@ -24,6 +26,10 @@ func main() {
 
 	// Services
 	authService := auth.NewService(userRepo)
+	statService := stat.NewService(&stat.ServiceDeps{
+		EventBus: eventBus,
+		StatRepo: statRepo,
+	})
 
 	// Handlers
 	auth.NewHandler(mux, auth.HandlerDeps{
@@ -33,7 +39,7 @@ func main() {
 	link.NewHandler(mux, link.HandlerDeps{
 		Config:   conf,
 		LinkRepo: linkRepo,
-		StatRepo: statRepo,
+		EventBus: eventBus,
 	})
 
 	stack := middleware.Chain(
@@ -45,6 +51,8 @@ func main() {
 		Addr:    conf.Port,
 		Handler: stack(mux),
 	}
+
+	go statService.AddClick()
 
 	log.Printf("Server is running on http://localhost%s", server.Addr)
 	server.ListenAndServe()

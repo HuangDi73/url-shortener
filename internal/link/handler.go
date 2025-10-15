@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"url-shortener/config"
-	"url-shortener/internal/stat"
+	"url-shortener/pkg/event"
 	"url-shortener/pkg/middleware"
 	"url-shortener/pkg/req"
 	"url-shortener/pkg/res"
@@ -14,13 +14,13 @@ import (
 type handler struct {
 	*config.Config
 	LinkRepo *Repository
-	StatRepo *stat.Repository
+	EventBus *event.EventBus
 }
 
 type HandlerDeps struct {
 	*config.Config
 	LinkRepo *Repository
-	StatRepo *stat.Repository
+	EventBus *event.EventBus
 }
 
 func NewHandler(mux *http.ServeMux, deps HandlerDeps) {
@@ -89,7 +89,10 @@ func (h *handler) GoTo() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-		h.StatRepo.AddClick(foundLink.ID)
+		go h.EventBus.Publish(event.Event{
+			Type: event.EventLinkVisited,
+			Data: foundLink.ID,
+		})
 		http.Redirect(w, r, foundLink.Url, http.StatusTemporaryRedirect)
 	}
 }
