@@ -3,6 +3,7 @@ package link
 import (
 	"math/rand/v2"
 	"time"
+	"url-shortener/internal/stat"
 
 	"gorm.io/gorm"
 )
@@ -16,6 +17,7 @@ type Link struct {
 	DeletedAt gorm.DeletedAt `json:"deleted_at" gorm:"index"`
 	Url       string         `json:"url"`
 	Hash      string         `json:"hash" gorm:"uniqueIndex"`
+	Stats     []stat.Stat    `json:"stats" gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 
 func NewLink(url string) *Link {
