@@ -23,6 +23,7 @@ type HandlerDeps struct {
 func NewHandler(mux *http.ServeMux, deps HandlerDeps) {
 	h := handler(deps)
 	mux.HandleFunc("POST /link", h.Create())
+	mux.Handle("GET /links", middleware.IsAuthed(h.GetAll(), h.Config))
 	mux.HandleFunc("GET /{hash}", h.GoTo())
 	mux.Handle("PATCH /link/{id}", middleware.IsAuthed(h.Update(), h.Config))
 	mux.HandleFunc("DELETE /link/{id}", h.Delete())
@@ -52,6 +53,28 @@ func (h *handler) Create() http.HandlerFunc {
 			return
 		}
 		res.Json(w, createdLink, http.StatusCreated)
+	}
+}
+
+func (h *handler) GetAll() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+		if err != nil {
+			http.Error(w, "Invalid limit", http.StatusBadRequest)
+			return
+		}
+		offset, err := strconv.Atoi(r.URL.Query().Get("offset"))
+		if err != nil {
+			http.Error(w, "Invalid offset", http.StatusBadRequest)
+			return
+		}
+		links := h.Repo.GetAll(limit, offset)
+		count := h.Repo.Count()
+		gotLinks := GetAllLinksResponse{
+			Links: *links,
+			Count: count,
+		}
+		res.Json(w, gotLinks, http.StatusOK)
 	}
 }
 
