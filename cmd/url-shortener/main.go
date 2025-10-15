@@ -41,6 +41,10 @@ func main() {
 		LinkRepo: linkRepo,
 		EventBus: eventBus,
 	})
+	stat.NewHandler(mux, stat.HandlerDeps{
+		StatRepo: statRepo,
+		Config:   conf,
+	})
 
 	stack := middleware.Chain(
 		middleware.Logging,
