@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"url-shortener/config"
+	"url-shortener/internal/stat"
 	"url-shortener/pkg/middleware"
 	"url-shortener/pkg/req"
 	"url-shortener/pkg/res"
@@ -12,12 +13,14 @@ import (
 
 type handler struct {
 	*config.Config
-	Repo *Repository
+	LinkRepo *Repository
+	StatRepo *stat.Repository
 }
 
 type HandlerDeps struct {
 	*config.Config
-	Repo *Repository
+	LinkRepo *Repository
+	StatRepo *stat.Repository
 }
 
 func NewHandler(mux *http.ServeMux, deps HandlerDeps) {
@@ -41,13 +44,13 @@ func (h *handler) Create() http.HandlerFunc {
 		}
 		link := NewLink(body.Url)
 		for {
-			existedLink, _ := h.Repo.FindByHash(link.Hash)
+			existedLink, _ := h.LinkRepo.FindByHash(link.Hash)
 			if existedLink == nil {
 				break
 			}
 			link.GenerateHash()
 		}
-		createdLink, err := h.Repo.Create(link)
+		createdLink, err := h.LinkRepo.Create(link)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -68,8 +71,8 @@ func (h *handler) GetAll() http.HandlerFunc {
 			http.Error(w, "Invalid offset", http.StatusBadRequest)
 			return
 		}
-		links := h.Repo.GetAll(limit, offset)
-		count := h.Repo.Count()
+		links := h.LinkRepo.GetAll(limit, offset)
+		count := h.LinkRepo.Count()
 		gotLinks := GetAllLinksResponse{
 			Links: *links,
 			Count: count,
@@ -81,11 +84,12 @@ func (h *handler) GetAll() http.HandlerFunc {
 func (h *handler) GoTo() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		hash := r.PathValue("hash")
-		foundLink, err := h.Repo.FindByHash(hash)
+		foundLink, err := h.LinkRepo.FindByHash(hash)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
+		h.StatRepo.AddClick(foundLink.ID)
 		http.Redirect(w, r, foundLink.Url, http.StatusTemporaryRedirect)
 	}
 }
@@ -115,7 +119,7 @@ func (h *handler) Update() http.HandlerFunc {
 			Url:  body.Url,
 			Hash: body.Hash,
 		}
-		updatedLink, err := h.Repo.Update(link)
+		updatedLink, err := h.LinkRepo.Update(link)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -132,12 +136,12 @@ func (h *handler) Delete() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		_, err = h.Repo.FindById(uint(id))
+		_, err = h.LinkRepo.FindById(uint(id))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-		err = h.Repo.Delete(uint(id))
+		err = h.LinkRepo.Delete(uint(id))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

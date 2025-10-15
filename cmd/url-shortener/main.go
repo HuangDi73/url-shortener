@@ -6,6 +6,7 @@ import (
 	"url-shortener/config"
 	"url-shortener/internal/auth"
 	"url-shortener/internal/link"
+	"url-shortener/internal/stat"
 	"url-shortener/internal/user"
 	"url-shortener/pkg/db"
 	"url-shortener/pkg/middleware"
@@ -19,6 +20,7 @@ func main() {
 	// Repositories
 	linkRepo := link.NewRepository(db)
 	userRepo := user.NewRepository(db)
+	statRepo := stat.NewRepository(db)
 
 	// Services
 	authService := auth.NewService(userRepo)
@@ -29,8 +31,9 @@ func main() {
 		AuthService: authService,
 	})
 	link.NewHandler(mux, link.HandlerDeps{
-		Config: conf,
-		Repo:   linkRepo,
+		Config:   conf,
+		LinkRepo: linkRepo,
+		StatRepo: statRepo,
 	})
 
 	stack := middleware.Chain(
